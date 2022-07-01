@@ -1,16 +1,14 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { RootState, AppThunk } from '../../app/store';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { RootState } from '../../app/store';
 import { fetchCount } from './counterAPI';
 
 export interface CounterState {
   value: number;
-  status: 'idle' | 'loading' | 'failed';
 }
 
-const initialState: CounterState = {
+const initialState: Array<CounterState> = [{
   value: 0,
-  status: 'idle',
-};
+}];
 
 export const incrementAsync = createAsyncThunk(
   'counter/fetchCount',
@@ -24,42 +22,22 @@ export const counterSlice = createSlice({
   name: 'counter',
   initialState,
   reducers: {
-    increment: (state) => {
-      state.value += 1;
+    addCounter: (state) => {
+      state[ state.length] = state[ state.length - 1]
     },
-    decrement: (state) => {
-      state.value -= 1;
+    increment: (state, {payload: {index}}) => {
+      state[index].value += 1;
     },
-    incrementByAmount: (state, action: PayloadAction<number>) => {
-      state.value += action.payload;
+    decrement: (state, {payload: {index}}) => {
+      state[index].value -= 1;
     },
   },
-  extraReducers: (builder) => {
-    builder
-      .addCase(incrementAsync.pending, (state) => {
-        state.status = 'loading';
-      })
-      .addCase(incrementAsync.fulfilled, (state, action) => {
-        state.status = 'idle';
-        state.value += action.payload;
-      })
-      .addCase(incrementAsync.rejected, (state) => {
-        state.status = 'failed';
-      });
-  },
+
 });
 
-export const { increment, decrement, incrementByAmount } = counterSlice.actions;
+export const {addCounter, increment, decrement } = counterSlice.actions;
 
-export const selectCount = (state: RootState) => state.counter.value;
+export const selectCount = (state: RootState) => state.counter;
 
-export const incrementIfOdd =
-  (amount: number): AppThunk =>
-  (dispatch, getState) => {
-    const currentValue = selectCount(getState());
-    if (currentValue % 2 === 1) {
-      dispatch(incrementByAmount(amount));
-    }
-  };
 
 export default counterSlice.reducer;
